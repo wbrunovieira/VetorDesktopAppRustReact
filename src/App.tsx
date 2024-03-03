@@ -1,47 +1,18 @@
 import { useState } from 'react';
-
-import { invoke } from '@tauri-apps/api/tauri';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles.css';
+import Login from './components/Login';
+import Home from './components/Home';
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState('');
-  const [name, setName] = useState('');
-
-  async function greet() {
-    setGreetMsg(await invoke('greet', { name }));
-  }
-
+const App = () => {
   return (
-    <div className=' bg-black'>
-      <h1 className='text-lg text-red-500'>
-        Bem vindo ao Sistema IR da Vetor Soluções Intêligentes.{' '}
-      </h1>
-
-      <p>entre com o email e senha</p>
-
-      <form
-        className='login'
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id='email'
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder='Digite o email'
-        />
-        <input
-          id='password'
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder='Digite a senha'
-        />
-        <button type='submit'>Enviar</button>
-      </form>
-
-      <p>{greetMsg}</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path='/Login' element={<Login />} />
+        <Route path='/home' element={<Home />} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;
