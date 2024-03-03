@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { invoke } from '@tauri-apps/api/tauri';
-import './App.css';
+import './styles.css';
 
 function App() {
   const [greetMsg, setGreetMsg] = useState('');
@@ -12,8 +12,10 @@ function App() {
   }
 
   return (
-    <div className='container'>
-      <h1>Bem vindo ao Sistema IR da Vetor Soluções Intêligentes. </h1>
+    <div className=' bg-black'>
+      <h1 className='text-lg text-red-500'>
+        Bem vindo ao Sistema IR da Vetor Soluções Intêligentes.{' '}
+      </h1>
 
       <p>entre com o email e senha</p>
 
