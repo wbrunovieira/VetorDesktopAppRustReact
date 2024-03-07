@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface User {
   nome: string;
@@ -105,10 +105,10 @@ const Home: React.FC = () => {
           </h1>
           <button
             type='submit'
-            className=' px-4 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors h-8'
+            className=' px-2 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors h-6 text-xs shadow-lg'
             onClick={() => navigate('/Login')}
           >
-            voltar
+            sair
           </button>
         </div>
         <form
@@ -138,7 +138,7 @@ const Home: React.FC = () => {
           />
           <button
             type='submit'
-            className='py-2 px-4 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors'
+            className='py-2 px-4 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors shadow-2xl'
           >
             Pesquisar
           </button>

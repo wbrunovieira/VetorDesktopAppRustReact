@@ -69,24 +69,11 @@ const Login: React.FC = () => {
           </button>
         </form>
         <div className='mt-6 text-center'>
-          <span className='text-gray-500'>Ou acesse com o Google</span>
+          <span className='text-gray-500 text-xs'>Ou acesse com o Google</span>
         </div>
-        <div className='flex justify-center mt-4'>
+        <div className='flex justify-center mt-2'>
           <button className='flex items-center justify-center w-10 h-10 bg-red-500 rounded-full text-white mr-2'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-              className='w-6 h-6'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-              />
-            </svg>
+            <img className='h-full' src='/images/google.jpg' alt='Google' />
           </button>
         </div>
       </div>
