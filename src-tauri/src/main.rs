@@ -7,6 +7,22 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+
+struct Receita {
+    User: User,
+    data: String,
+    year: u8,
+
+}
+
+struct User {
+    name: String,
+    cpf: u8,
+    grupo: String,
+    active: bool,
+    status: String,
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
