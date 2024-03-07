@@ -19,24 +19,26 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen bg-gray-100'>
-      <div className='max-w-md w-full px-6 py-8 bg-white shadow-md rounded-md'>
-        <h1 className='text-3xl w-full bg-white rounded-md text-center'>
-          Vetor - Soluções Intêligentes
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark'>
+      <div className='max-w-md w-full px-6 py-8 bg-primary-moreLighter shadow-md rounded-md'>
+        <h1 className='text-3xl w-full bg-primary-moreLighter rounded-md text-center text-primary-almostBlack'>
+          Vetor - Soluções Inteligentes
         </h1>
-        <h2 className='text-2xl font-bold mb-2 text-center mt-4'>Login</h2>
+        <h2 className='text-2xl font-bold mb-2 text-center mt-4 text-primary-almostBlack'>
+          Login
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
             <label
               htmlFor='email'
-              className='block mb-2 text-sm font-medium text-gray-700'
+              className='block mb-2 text-sm font-medium text-primary-dark'
             >
               Email
             </label>
             <input
               type='email'
               id='email'
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500'
+              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
               value={email}
               onChange={handleEmailChange}
               required
@@ -45,14 +47,14 @@ const Login: React.FC = () => {
           <div className='mb-4'>
             <label
               htmlFor='password'
-              className='block mb-2 text-sm font-medium text-gray-700'
+              className='block mb-2 text-sm font-medium text-primary-dark'
             >
               Senha
             </label>
             <input
               type='password'
               id='password'
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500'
+              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
               value={password}
               onChange={handlePasswordChange}
               required
@@ -60,7 +62,7 @@ const Login: React.FC = () => {
           </div>
           <button
             type='submit'
-            className='w-full py-2 px-4 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors'
+            className='w-full py-2 px-4 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors'
             onClick={() => navigate('/Home')}
           >
             Acessar
