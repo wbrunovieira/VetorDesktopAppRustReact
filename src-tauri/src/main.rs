@@ -3,29 +3,36 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+
+mod read_dec;
+use read_dec::{criar, obter_caminho_usuario};
 
 
-struct Receita {
-    User: User,
-    data: String,
-    year: u8,
+// struct Receita {
+//     User: User,
+//     data: String,
+//     year: u8,
 
-}
+// }
 
-struct User {
-    name: String,
-    cpf: u8,
-    grupo: String,
-    active: bool,
-    status: String,
-}
+// struct User {
+//     name: String,
+//     cpf: u8,
+//     grupo: String,
+//     active: bool,
+//     status: String,
+// }
+
+
+
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+    .invoke_handler(tauri::generate_handler![greet, obter_caminho_usuario, criar])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+        
+        let caminho = obter_caminho_usuario().unwrap();
+    criar(&caminho);
+  
 }
