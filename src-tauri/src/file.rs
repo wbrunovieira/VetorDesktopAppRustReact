@@ -1,5 +1,25 @@
 use std::{env, fs::{self, File}, io::Read, path::Path};
 use std::io::Write;
+use regex::Regex;
+
+struct Endereco {
+  logradouro: String,
+  numero: String,
+  
+  bairro: String,
+  cidade: String,
+  estado: String,
+  cep: String
+}
+struct RegistroIRPF {
+  identificador: String,
+  nome: String,
+  estado: String,
+  data_nascimento: String,
+  cpf: String,
+  
+  
+}
 
 pub fn get_path_from_user( ) -> Option<String> {
   if let Some(path_home) = env::var_os("HOME") {
@@ -52,6 +72,33 @@ pub fn read_file(full_path: &str) {
 }
 }
 
+// pub fn read_files_dec(diretorio: &str) {
+//   let path = Path::new(diretorio);
+
+//   if path.exists() && path.is_dir() {
+//       match fs::read_dir(path) {
+//           Ok(entries) => {
+//               for entry in entries.filter_map(Result::ok) {
+//                   let path = entry.path();
+//                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
+//                       match fs::read_to_string(&path) {
+//                           Ok(content) => {
+//                               println!("Conteúdo do arquivo {:?}:\n{}", path.file_name().unwrap(), content);
+//                           }
+//                           Err(e) => {
+//                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
+//                           }
+//                       }
+//                   }
+//               }
+//           },
+//           Err(e) => println!("Erro ao ler o diretório: {}", e),
+//       }
+//   } else {
+//       println!("O diretório fornecido não existe ou não é um diretório.");
+//   }
+// }
+
 pub fn read_files_dec(diretorio: &str) {
   let path = Path::new(diretorio);
 
@@ -63,7 +110,18 @@ pub fn read_files_dec(diretorio: &str) {
                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
                       match fs::read_to_string(&path) {
                           Ok(content) => {
-                              println!("Conteúdo do arquivo {:?}:\n{}", path.file_name().unwrap(), content);
+                              // Utilizamos uma regex que considera a estrutura do texto
+                              let regex = Regex::new(r".{21}(\d{11}).{7}(.{60})").unwrap();
+
+                              if let Some(capturas) = regex.captures(&content) {
+                                  let cpf = capturas.get(1).map_or("", |m| m.as_str());
+                                  let nome = capturas.get(2).map_or("", |m| m.as_str()).trim();
+
+                                  println!("CPF: {}", cpf);
+                                  println!("Nome: {}", nome);
+                              } else {
+                                  println!("Dados não encontrados");
+                              }
                           }
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
