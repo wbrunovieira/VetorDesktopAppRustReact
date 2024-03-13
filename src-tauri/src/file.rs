@@ -109,13 +109,15 @@ pub fn read_files_dec(diretorio: &str) {
                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
                       match fs::read_to_string(&path) {
                           Ok(content) => {
-                              // Extraindo com base na posição dos caracteres
-                              let cpf = &content[21..32]; // CPF: posições 22 a 32
-                              let nome = &content[39..99].trim(); // Nome: posições 40 a 99, removendo espaços extras
-                              let exercicio = &content[8..12]; // Exercício: posições 9 a 12
-                              let rend_tributaveis = &content[695..708]; // Rendimentos Tributáveis: posições 696 a 708
-                              let rend_isentos = &content[736..749]; // Rendimentos Isentos: posições 737 a 749
-                              let rend_exclusivos = &content[749..762]; // Rendimentos Sujeitos à Tributação Exclusiva: posições 750 a 762
+                              let cpf = &content[21..32];
+                              let nome = &content[39..99].trim();
+                              let exercicio = &content[8..12];
+                              let rend_tributaveis = &content[695..708];
+                              let rend_isentos = &content[736..749];
+                              let rend_exclusivos = &content[749..762];
+                              let juros = &content[193..206]; // Pagamento anual total de juros: posições 194 a 206
+                              let doacoes_politicas = &content[482..495]; // Doações a partidos políticos: posições 483 a 495
+                              let pagamentos_doacoes_outros = &content[762..775]; // Pagamentos/doações/outros: posições 763 a 775
 
                               println!("CPF: {}", cpf);
                               println!("Nome: {}", nome);
@@ -123,6 +125,9 @@ pub fn read_files_dec(diretorio: &str) {
                               println!("Rendimentos Tributáveis: {}", rend_tributaveis);
                               println!("Rendimentos Isentos: {}", rend_isentos);
                               println!("Rendimentos Sujeitos à Tributação Exclusiva: {}", rend_exclusivos);
+                              println!("Pagamento Anual Total de Juros: {}", juros);
+                              println!("Doações a Partidos Políticos: {}", doacoes_politicas);
+                              println!("Pagamentos/Doações/Outros: {}", pagamentos_doacoes_outros);
                           }
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
