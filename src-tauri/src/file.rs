@@ -98,7 +98,6 @@ pub fn read_file(full_path: &str) {
 //       println!("O diretório fornecido não existe ou não é um diretório.");
 //   }
 // }
-
 pub fn read_files_dec(diretorio: &str) {
   let path = Path::new(diretorio);
 
@@ -110,18 +109,20 @@ pub fn read_files_dec(diretorio: &str) {
                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
                       match fs::read_to_string(&path) {
                           Ok(content) => {
-                              // Utilizamos uma regex que considera a estrutura do texto
-                              let regex = Regex::new(r".{21}(\d{11}).{7}(.{60})").unwrap();
+                              // Extraindo com base na posição dos caracteres
+                              let cpf = &content[21..32]; // CPF: posições 22 a 32
+                              let nome = &content[39..99].trim(); // Nome: posições 40 a 99, removendo espaços extras
+                              let exercicio = &content[8..12]; // Exercício: posições 9 a 12
+                              let rend_tributaveis = &content[695..708]; // Rendimentos Tributáveis: posições 696 a 708
+                              let rend_isentos = &content[736..749]; // Rendimentos Isentos: posições 737 a 749
+                              let rend_exclusivos = &content[749..762]; // Rendimentos Sujeitos à Tributação Exclusiva: posições 750 a 762
 
-                              if let Some(capturas) = regex.captures(&content) {
-                                  let cpf = capturas.get(1).map_or("", |m| m.as_str());
-                                  let nome = capturas.get(2).map_or("", |m| m.as_str()).trim();
-
-                                  println!("CPF: {}", cpf);
-                                  println!("Nome: {}", nome);
-                              } else {
-                                  println!("Dados não encontrados");
-                              }
+                              println!("CPF: {}", cpf);
+                              println!("Nome: {}", nome);
+                              println!("Exercício: {}", exercicio);
+                              println!("Rendimentos Tributáveis: {}", rend_tributaveis);
+                              println!("Rendimentos Isentos: {}", rend_isentos);
+                              println!("Rendimentos Sujeitos à Tributação Exclusiva: {}", rend_exclusivos);
                           }
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
