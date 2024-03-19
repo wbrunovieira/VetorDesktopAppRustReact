@@ -1,100 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 
 import { Link, useNavigate } from 'react-router-dom';
 
 interface User {
   nome: string;
   cpf: string;
-  grupo: string;
-  ativo: boolean;
-  statusFinanceiro: string;
+  grupo?: string;
+  ativo?: boolean;
+  statusFinanceiro?: string;
 }
-
-const dadosUsuarios: User[] = [
-  {
-    nome: 'Ana Silva',
-    cpf: '123.456.789-00',
-    grupo: 'Admin',
-    ativo: true,
-    statusFinanceiro: 'Em dia',
-  },
-  {
-    nome: 'Bruno Martins',
-    cpf: '987.654.321-11',
-    grupo: 'Usuário',
-    ativo: true,
-    statusFinanceiro: 'Em atraso',
-  },
-  {
-    nome: 'Carlos Eduardo',
-    cpf: '111.222.333-44',
-    grupo: 'Moderador',
-    ativo: false,
-    statusFinanceiro: 'Em dia',
-  },
-  {
-    nome: 'Diana Rocha',
-    cpf: '555.666.777-88',
-    grupo: 'Admin',
-    ativo: true,
-    statusFinanceiro: 'Em atraso',
-  },
-  {
-    nome: 'Eduardo Lima',
-    cpf: '999.888.777-66',
-    grupo: 'Usuário',
-    ativo: false,
-    statusFinanceiro: 'Em dia',
-  },
-  {
-    nome: 'Fernanda Gomes',
-    cpf: '444.555.666-77',
-    grupo: 'Moderador',
-    ativo: true,
-    statusFinanceiro: 'Em dia',
-  },
-  {
-    nome: 'Gustavo Pereira',
-    cpf: '222.333.444-55',
-    grupo: 'Admin',
-    ativo: true,
-    statusFinanceiro: 'Em atraso',
-  },
-  {
-    nome: 'Helena Souza',
-    cpf: '666.777.888-99',
-    grupo: 'Usuário',
-    ativo: false,
-    statusFinanceiro: 'Em dia',
-  },
-  {
-    nome: 'Igor Andrade',
-    cpf: '000.111.222-33',
-    grupo: 'Moderador',
-    ativo: true,
-    statusFinanceiro: 'Em atraso',
-  },
-  {
-    nome: 'Juliana Vieira',
-    cpf: '888.999.000-11',
-    grupo: 'Admin',
-    ativo: true,
-    statusFinanceiro: 'Em dia',
-  },
-  // Adicione os outros usuários aqui...
-];
 
 const Home: React.FC = () => {
   const [ano, setAno] = useState('');
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
-  const [usuarios, setUsuarios] = useState<User[]>(dadosUsuarios);
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const users: User[] = await invoke('get_users');
+        console.log(users);
+        setUsers(users);
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        setError('Falha ao carregar usuários.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
+
+  if (error) {
+    return <div className='error'>{error}</div>;
+  }
+
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark'>
@@ -165,20 +119,24 @@ const Home: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((usuario, index) => (
-                <tr key={index} className='bg-primary-light border-b'>
-                  <th
-                    scope='row'
-                    className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'
-                  >
-                    {usuario.nome}
-                  </th>
-                  <td className='py-4 px-6'>{usuario.cpf}</td>
-                  <td className='py-4 px-6'>{usuario.grupo}</td>
-                  <td className='py-4 px-6'>{usuario.ativo ? 'Sim' : 'Não'}</td>
-                  <td className='py-4 px-6'>{usuario.statusFinanceiro}</td>
-                </tr>
-              ))}
+              {users
+                ? users.map((usuario, index) => (
+                    <tr key={index} className='bg-primary-light border-b'>
+                      <th
+                        scope='row'
+                        className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'
+                      >
+                        {usuario.nome}
+                      </th>
+                      <td className='py-4 px-6'>{usuario.cpf}</td>
+                      <td className='py-4 px-6'>{usuario.grupo}</td>
+                      <td className='py-4 px-6'>
+                        {usuario.ativo ? 'Sim' : 'Não'}
+                      </td>
+                      <td className='py-4 px-6'>{usuario.statusFinanceiro}</td>
+                    </tr>
+                  ))
+                : null}
             </tbody>
           </table>
         </div>

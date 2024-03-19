@@ -3,6 +3,11 @@ use std::io::Write;
 use std::fmt;
 use rusqlite::{Connection, Result};
 
+
+use std::path::PathBuf;
+
+
+
 #[derive(Debug)]
 pub struct DadosDec {
     cpf: String,
@@ -14,6 +19,12 @@ pub struct DadosDec {
     juros: String,
     doacoes_politicas: String,
     pagamentos_doacoes_outros: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct UserInfo {
+    nome: String,
+    cpf: String,
 }
 
 
@@ -141,6 +152,7 @@ pub fn create_table() -> Result<()> {
   Ok(())
 }
 
+
 pub fn insert_dados_dec(conn: &Connection, dados: &DadosDec) -> Result<()> {
   conn.execute(
       "INSERT INTO dados_dec (cpf, nome, exercicio, rend_tributaveis, rend_isentos, rend_exclusivos, juros, doacoes_politicas, pagamentos_doacoes_outros)
@@ -153,5 +165,24 @@ pub fn insert_dados_dec(conn: &Connection, dados: &DadosDec) -> Result<()> {
   )?;
   Ok(())
 }
+#[tauri::command]
+pub fn get_users() -> Result<Vec<UserInfo>, String> {
+  let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
+    let conn = Connection::open(path_to_db)
+        .map_err(|e| e.to_string())?;
+    let mut statement = conn
+        .prepare("SELECT nome, cpf FROM dados_dec")
+        .map_err(|e| e.to_string())?;
+    let users_iter = statement
+        .query_map([], |row| {
+            Ok(UserInfo {
+                nome: row.get(0)?,
+                cpf: row.get(1)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
 
+    let users: Result<Vec<_>, _> = users_iter.collect();
+    users.map_err(|e| e.to_string())
+}
 
