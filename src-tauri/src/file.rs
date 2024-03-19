@@ -1,25 +1,19 @@
 use std::{env, fs::{self, File}, io::Read, path::Path};
 use std::io::Write;
-use regex::Regex;
 
-struct Endereco {
-  logradouro: String,
-  numero: String,
-  
-  bairro: String,
-  cidade: String,
-  estado: String,
-  cep: String
+#[derive(Debug)]
+struct DadosDec {
+    cpf: String,
+    nome: String,
+    exercicio: String,
+    rend_tributaveis: String,
+    rend_isentos: String,
+    rend_exclusivos: String,
+    juros: String,
+    doacoes_politicas: String,
+    pagamentos_doacoes_outros: String,
 }
-struct RegistroIRPF {
-  identificador: String,
-  nome: String,
-  estado: String,
-  data_nascimento: String,
-  cpf: String,
-  
-  
-}
+
 
 pub fn get_path_from_user( ) -> Option<String> {
   if let Some(path_home) = env::var_os("HOME") {
@@ -72,32 +66,7 @@ pub fn read_file(full_path: &str) {
 }
 }
 
-// pub fn read_files_dec(diretorio: &str) {
-//   let path = Path::new(diretorio);
 
-//   if path.exists() && path.is_dir() {
-//       match fs::read_dir(path) {
-//           Ok(entries) => {
-//               for entry in entries.filter_map(Result::ok) {
-//                   let path = entry.path();
-//                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
-//                       match fs::read_to_string(&path) {
-//                           Ok(content) => {
-//                               println!("Conteúdo do arquivo {:?}:\n{}", path.file_name().unwrap(), content);
-//                           }
-//                           Err(e) => {
-//                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
-//                           }
-//                       }
-//                   }
-//               }
-//           },
-//           Err(e) => println!("Erro ao ler o diretório: {}", e),
-//       }
-//   } else {
-//       println!("O diretório fornecido não existe ou não é um diretório.");
-//   }
-// }
 pub fn read_files_dec(diretorio: &str) {
   let path = Path::new(diretorio);
 
@@ -109,26 +78,21 @@ pub fn read_files_dec(diretorio: &str) {
                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
                       match fs::read_to_string(&path) {
                           Ok(content) => {
-                              let cpf = &content[21..32];
-                              let nome = &content[39..99].trim();
-                              let exercicio = &content[8..12];
-                              let rend_tributaveis = &content[695..708];
-                              let rend_isentos = &content[736..749];
-                              let rend_exclusivos = &content[749..762];
-                              let juros = &content[193..206]; // Pagamento anual total de juros: posições 194 a 206
-                              let doacoes_politicas = &content[482..495]; // Doações a partidos políticos: posições 483 a 495
-                              let pagamentos_doacoes_outros = &content[762..775]; // Pagamentos/doações/outros: posições 763 a 775
-
-                              println!("CPF: {}", cpf);
-                              println!("Nome: {}", nome);
-                              println!("Exercício: {}", exercicio);
-                              println!("Rendimentos Tributáveis: {}", rend_tributaveis);
-                              println!("Rendimentos Isentos: {}", rend_isentos);
-                              println!("Rendimentos Sujeitos à Tributação Exclusiva: {}", rend_exclusivos);
-                              println!("Pagamento Anual Total de Juros: {}", juros);
-                              println!("Doações a Partidos Políticos: {}", doacoes_politicas);
-                              println!("Pagamentos/Doações/Outros: {}", pagamentos_doacoes_outros);
-                          }
+                              let dados = DadosDec {
+                                  cpf: content[21..32].to_string(),
+                                  nome: content[39..99].trim().to_string(),
+                                  exercicio: content[8..12].to_string(),
+                                  rend_tributaveis: content[695..708].to_string(),
+                                  rend_isentos: content[736..749].to_string(),
+                                  rend_exclusivos: content[749..762].to_string(),
+                                  juros: content[193..206].to_string(),
+                                  doacoes_politicas: content[482..495].to_string(),
+                                  pagamentos_doacoes_outros: content[762..775].to_string(),
+                              };
+                              
+                              // Aqui, você pode fazer o que precisar com os dados, como imprimir ou armazenar em algum lugar
+                              println!("{:?}", dados);
+                          },
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
                           }
