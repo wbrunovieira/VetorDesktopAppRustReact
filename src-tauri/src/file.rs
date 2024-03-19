@@ -2,7 +2,7 @@ use std::{env, fs::{self, File}, io::Read, path::Path};
 use std::io::Write;
 
 #[derive(Debug)]
-struct DadosDec {
+pub struct DadosDec {
     cpf: String,
     nome: String,
     exercicio: String,
@@ -67,8 +67,48 @@ pub fn read_file(full_path: &str) {
 }
 
 
-pub fn read_files_dec(diretorio: &str) {
+// pub fn read_files_dec(diretorio: &str) {
+//   let path = Path::new(diretorio);
+
+//   if path.exists() && path.is_dir() {
+//       match fs::read_dir(path) {
+//           Ok(entries) => {
+//               for entry in entries.filter_map(Result::ok) {
+//                   let path = entry.path();
+//                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
+//                       match fs::read_to_string(&path) {
+//                           Ok(content) => {
+//                               let dados = DadosDec {
+//                                   cpf: content[21..32].to_string(),
+//                                   nome: content[39..99].trim().to_string(),
+//                                   exercicio: content[8..12].to_string(),
+//                                   rend_tributaveis: content[695..708].to_string(),
+//                                   rend_isentos: content[736..749].to_string(),
+//                                   rend_exclusivos: content[749..762].to_string(),
+//                                   juros: content[193..206].to_string(),
+//                                   doacoes_politicas: content[482..495].to_string(),
+//                                   pagamentos_doacoes_outros: content[762..775].to_string(),
+//                               };
+                              
+//                               // Aqui, você pode fazer o que precisar com os dados, como imprimir ou armazenar em algum lugar
+//                               println!("{:?}", dados);
+//                           },
+//                           Err(e) => {
+//                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
+//                           }
+//                       }
+//                   }
+//               }
+//           },
+//           Err(e) => println!("Erro ao ler o diretório: {}", e),
+//       }
+//   } else {
+//       println!("O diretório fornecido não existe ou não é um diretório.");
+//   }
+// }
+pub fn read_files_dec(diretorio: &str) -> Vec<DadosDec> {
   let path = Path::new(diretorio);
+  let mut dados_dec = Vec::new();
 
   if path.exists() && path.is_dir() {
       match fs::read_dir(path) {
@@ -89,9 +129,7 @@ pub fn read_files_dec(diretorio: &str) {
                                   doacoes_politicas: content[482..495].to_string(),
                                   pagamentos_doacoes_outros: content[762..775].to_string(),
                               };
-                              
-                              // Aqui, você pode fazer o que precisar com os dados, como imprimir ou armazenar em algum lugar
-                              println!("{:?}", dados);
+                              dados_dec.push(dados);
                           },
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
@@ -105,4 +143,7 @@ pub fn read_files_dec(diretorio: &str) {
   } else {
       println!("O diretório fornecido não existe ou não é um diretório.");
   }
+
+  dados_dec
 }
+
