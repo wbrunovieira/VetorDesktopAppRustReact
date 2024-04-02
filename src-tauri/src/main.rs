@@ -1,9 +1,12 @@
 
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 extern crate sys_info;
 extern crate mac_address;
-use mac_address::get_mac_address;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+use mac_address::{get_mac_address, MacAddressError};
 mod file;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
 
@@ -14,13 +17,11 @@ use rusqlite::{Connection, Result};
 
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn authenticate_login(email: String, password: String) {
+println!("Received email: {}, password: {}", email, password);
 }
-
-
-
 
 fn main() -> Result<()> {
     let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
@@ -68,14 +69,17 @@ fn main() -> Result<()> {
 
     match get_mac_address() {
         Ok(Some(mac_address)) => println!("Endereço MAC encontrado: {:?}", mac_address),
-        Ok(None) => println!("Nenhum endereço MAC disponível."),
-        Err(e) => println!("Erro ao obter o endereço MAC: {}", e),
+  
+       Ok(None) => println!("Nenhum endereço MAC disponível."),
+        Err(  MacAddressError) => println!("Erro ao obter o endereço MAC: {}" ,MacAddressError),
     }
+
+   
       
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
-      
+    
+        .invoke_handler(tauri::generate_handler![ authenticate_login])
         .invoke_handler(tauri::generate_handler![get_users])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

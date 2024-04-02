@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/tauri';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,8 +15,16 @@ const Login: React.FC = () => {
     setPassword(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    try {
+      const response = await invoke('authenticate_login', { email, password });
+
+      console.log(response);
+    } catch (error) {
+      console.error('Erro na autenticação:', error);
+    }
   };
 
   return (
@@ -63,7 +72,6 @@ const Login: React.FC = () => {
           <button
             type='submit'
             className='w-full py-2 px-4 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors'
-            onClick={() => navigate('/Home')}
           >
             Acessar
           </button>
