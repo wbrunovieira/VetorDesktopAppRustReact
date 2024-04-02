@@ -154,6 +154,11 @@ pub fn create_table() -> Result<()> {
 
 
 pub fn insert_dados_dec(conn: &Connection, dados: &DadosDec) -> Result<()> {
+  let mut check_stmt = conn.prepare("SELECT cpf FROM dados_dec WHERE cpf = ?1")?;
+  let exists = check_stmt.exists(&[&dados.cpf])?;
+
+  if !exists {
+  
   conn.execute(
       "INSERT INTO dados_dec (cpf, nome, exercicio, rend_tributaveis, rend_isentos, rend_exclusivos, juros, doacoes_politicas, pagamentos_doacoes_outros)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
@@ -163,6 +168,7 @@ pub fn insert_dados_dec(conn: &Connection, dados: &DadosDec) -> Result<()> {
           &dados.doacoes_politicas, &dados.pagamentos_doacoes_outros,
       ],
   )?;
+}
   Ok(())
 }
 #[tauri::command]
