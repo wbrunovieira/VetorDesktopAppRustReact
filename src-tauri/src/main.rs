@@ -25,17 +25,18 @@ fn main() -> Result<()> {
     fn test_connection() -> String {
         let message = "Conexão com o backend estabelecida!".to_string();
         println!("{}", message);
-        io::stdout().flush().unwrap(); 
+        io::stdout().flush().unwrap(); // Força o flush do que foi impresso
         message 
 }
    
 
-#[tauri::command]
-fn authenticate_login(email: &str, password: &str) -> String {
-    let information = format!("Received email: {}, password: {}", email, password);
-    println!("{}", information); 
-    io::stdout().flush().unwrap();
-    information
+    #[tauri::command]
+     fn authenticate_login(email: &str, password: &str) -> String {
+      let information =  format!("Received email: {}, password: {}", email, password);
+      io::stdout().flush().unwrap();
+        information
+
+
 }
 
     
@@ -89,7 +90,11 @@ fn authenticate_login(email: &str, password: &str) -> String {
         Err(  e) => println!("Erro ao obter o endereço MAC: {}" ,e),
     }
 
-  
+    #[tauri::command]
+    fn simple_test() {
+    println!("Teste simples executado");
+    simple_test();
+}
 
    
     tauri::Builder::default()
