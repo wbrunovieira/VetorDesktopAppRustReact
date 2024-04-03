@@ -4,9 +4,9 @@
 
 extern crate sys_info;
 extern crate mac_address;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-use mac_address::{get_mac_address, MacAddressError};
+
+
+use mac_address::get_mac_address;
 mod file;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
 
@@ -15,15 +15,30 @@ use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_us
 use crate::file::{read_file, read_files_dec};
 use rusqlite::{Connection, Result};
 
+use std::io::{self, Write};
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-#[tauri::command]
-async fn authenticate_login(email: String, password: String) {
-println!("Received email: {}, password: {}", email, password);
-}
 
 fn main() -> Result<()> {
+
+    #[tauri::command]
+    fn test_connection() -> String {
+        let message = "Conexão com o backend estabelecida!".to_string();
+        println!("{}", message);
+        io::stdout().flush().unwrap(); 
+        message 
+}
+   
+
+#[tauri::command]
+fn authenticate_login(email: &str, password: &str) -> String {
+    let information = format!("Received email: {}, password: {}", email, password);
+    println!("{}", information); 
+    io::stdout().flush().unwrap();
+    information
+}
+
+    
     let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
     println!("Tentando abrir o banco de dados em: {}", path_to_db);
 
@@ -71,18 +86,18 @@ fn main() -> Result<()> {
         Ok(Some(mac_address)) => println!("Endereço MAC encontrado: {:?}", mac_address),
   
        Ok(None) => println!("Nenhum endereço MAC disponível."),
-        Err(  MacAddressError) => println!("Erro ao obter o endereço MAC: {}" ,MacAddressError),
+        Err(  e) => println!("Erro ao obter o endereço MAC: {}" ,e),
     }
 
-   
-      
+  
 
+   
     tauri::Builder::default()
-    
-        .invoke_handler(tauri::generate_handler![ authenticate_login])
-        .invoke_handler(tauri::generate_handler![get_users])
+        .invoke_handler(tauri::generate_handler![test_connection, authenticate_login, get_users])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+ 
         
         
 

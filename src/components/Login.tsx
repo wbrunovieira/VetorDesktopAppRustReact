@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/tauri';
 
@@ -26,6 +26,19 @@ const Login: React.FC = () => {
       console.error('Erro na autenticação:', error);
     }
   };
+
+  useEffect(() => {
+    const checkBackendConnection = async () => {
+      try {
+        const response = await invoke('test_connection');
+        console.log(response);
+      } catch (error) {
+        console.error('Erro ao testar conexão com o backend:', error);
+      }
+    };
+
+    checkBackendConnection();
+  }, []);
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark'>

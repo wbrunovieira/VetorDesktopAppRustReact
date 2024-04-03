@@ -11,7 +11,7 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "all": true,
       "os": {
         "all": true
       },
@@ -27,7 +27,7 @@
         "renameFile": true
       },
       "shell": {
-        "all": false,
+        "all": true,
         "open": true
       }
     },
