@@ -2,7 +2,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-
+mod resources;
 mod file;
 mod system;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
@@ -11,6 +11,8 @@ use reqwest;
 
 
 use crate::file::{read_file, read_files_dec};
+use crate::resources::public_key::load_public_key;
+
 use rusqlite::{Connection, Result};
 
 use std::io::{self, Write};
@@ -18,6 +20,11 @@ use std::io::{self, Write};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+
+    let private_key = load_public_key().expect("erro a carregar public key");
+
+    println!("private key: {:?}", private_key);
+    
 
     system::print_system_info();
 
@@ -33,9 +40,17 @@ async fn main() -> Result<()> {
 
 #[tauri::command]
 async fn authenticate_login(email: &str, password: &str) -> Result<String, String> {
+    // get email and password and print in terminal
     let informations = format!("Receiveid email: {} , password: {}", email, password);
     println!("{}", informations);
     io::stdout().flush().unwrap();
+
+    // verfication if there is a saved token in db if the token is validated.
+
+
+
+
+    // get new token
     let client = reqwest::Client::new();
     let res = client.post("http://localhost:3333/auth")
         .json(&serde_json::json!({ "email": email, "password": password }))
@@ -51,6 +66,8 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
                 Ok(token)  =>{
                     println!("Token {}", token);
                     Ok(format!("resposta do login: {:?}", status))
+
+                    // save token in db
                 },
                 Err(e) => Err(format!("Erro ao extrair o body {}", e))
                   

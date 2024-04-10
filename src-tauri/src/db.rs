@@ -4,6 +4,19 @@ pub struct DbConn {
     pub conn: Connection,
 }
 
+// user logica
+#[derive(Debug)]
+pub struct user {
+    id: String,
+    name: String,
+    email: String,
+    token: String
+}
+
+
+
+// data logica
+
 #[derive(Debug)]
 pub struct DadosDec {
      cpf: String,
@@ -25,7 +38,7 @@ impl DadosDec {
 
   // Setter para o campo `nome`
   pub fn set_nome(&mut self, nome: String) {
-      // Aqui você pode adicionar validações se necessário
+     
       self.nome = nome;
   }
 }

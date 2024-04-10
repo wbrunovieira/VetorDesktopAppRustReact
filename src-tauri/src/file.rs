@@ -4,10 +4,6 @@ use std::fmt;
 use rusqlite::{Connection, Result};
 
 
-
-
-
-
 #[derive(Debug)]
 pub struct DadosDec {
     cpf: String,
