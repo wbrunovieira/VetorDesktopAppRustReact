@@ -4,6 +4,7 @@
 
 mod resources;
 mod file;
+mod jwt;
 mod system;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
 
@@ -12,8 +13,10 @@ use reqwest;
 
 use crate::file::{read_file, read_files_dec};
 use crate::resources::public_key::load_public_key;
+use crate::jwt::decode_jwt;
 
 use rusqlite::{Connection, Result};
+use serde_json::{Value, Error}; 
 
 use std::io::{self, Write};
 
@@ -21,10 +24,9 @@ use std::io::{self, Write};
 #[tokio::main]
 async fn main() -> Result<()> {
 
-    let private_key = load_public_key().expect("erro a carregar public key");
-
-    println!("private key: {:?}", private_key);
+   
     
+   
 
     system::print_system_info();
 
@@ -35,50 +37,65 @@ async fn main() -> Result<()> {
         io::stdout().flush().unwrap(); 
         message 
 }
-   
-
+ 
 
 #[tauri::command]
 async fn authenticate_login(email: &str, password: &str) -> Result<String, String> {
-    // get email and password and print in terminal
-    let informations = format!("Receiveid email: {} , password: {}", email, password);
+    // Carrega a chave pública
+    let public_key = load_public_key().expect("erro a carregar public key");
+    println!("public_key: {:?}", public_key);
+
+    println!("iniciou a authenticate");
+    let informations = format!("Received email: {} , password: {}", email, password);
     println!("{}", informations);
-    io::stdout().flush().unwrap();
 
-    // verfication if there is a saved token in db if the token is validated.
-
-
-
-
-    // get new token
     let client = reqwest::Client::new();
     let res = client.post("http://localhost:3333/auth")
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
         .await;
 
-    match res {
-        Ok(response) => {
-            let status = response.status();
-            if response.status().is_success() {
-              let body = response.text().await;
-              match body {
-                Ok(token)  =>{
-                    println!("Token {}", token);
-                    Ok(format!("resposta do login: {:?}", status))
+    if let Ok(response) = res {
+        println!("entrando no res");
+        let status = response.status();
+        if status.is_success() {
+            println!("entrando no is success");
+            if let Ok(response_text) = response.text().await {
+                println!("Token (JSON): {}", response_text);
 
-                    // save token in db
-                },
-                Err(e) => Err(format!("Erro ao extrair o body {}", e))
-                  
-              }
+                // Deserializa a string JSON para acessar o access_token
+                let v: Value = serde_json::from_str(&response_text).map_err(|_| "Erro ao parsear JSON")?;
+                
+                if let Some(access_token) = v["access_token"].as_str() {
+                    println!("O token de acesso é: {}", access_token);
+                    let public_key_bytes = public_key.as_bytes(); 
+                    println!("Tentando decodificar o JWT...");
+
+                    match decode_jwt(access_token, public_key_bytes) {
+                        Ok(claims) => {
+                            println!("ID do usuário: {}", claims.sub);
+                            return Ok(access_token.to_string());
+                        },
+                        Err(err) => {
+                            println!("Erro ao decodificar o token: {:?}", err);
+                            return Err("Erro ao decodificar o token".into());
+                        },
+                    }
+                } else {
+                    return Err("Token de acesso não encontrado.".into());
+                }
             } else {
-                Err(format!("Erro ao fazer login: {:?}", status))
+                return Err("Erro ao extrair o corpo da resposta".into());
             }
-        },
-        Err(e) => Err(format!("Erro ao enviar requisição: {}", e)),
+        } else {
+            return Err(format!("Erro ao fazer login: {:?}", status));
+        }
+    } else {
+        return Err("Erro ao enviar requisição".into());
     }
 }
+
+
 
 
     
