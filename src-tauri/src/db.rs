@@ -12,6 +12,7 @@ pub struct UserToken {
     pub user_id: String,
     pub email: String,
     pub token: String,
+    pub expire: String,
 }
 
  impl UserToken {
@@ -22,7 +23,8 @@ pub struct UserToken {
                 id INTEGER PRIMARY KEY,
                 user_id TEXT NOT NULL,
                 email TEXT NOT NULL,
-                token TEXT NOT NULL
+                token TEXT NOT NULL,
+                expire TEXT NOT NULL
             )",
             [],
         )?;
@@ -32,8 +34,8 @@ pub struct UserToken {
    
     pub fn insert_to_user(&self, conn: &Connection) -> Result<()> {
         conn.execute(
-            "INSERT INTO user_tokens (user_id, email, token) VALUES (?1, ?2, ?3)",
-            params![self.user_id, self.email, self.token],
+            "INSERT INTO user_tokens (user_id, email, token, expire) VALUES (?1, ?2, ?3, ?4)",
+            params![self.user_id, self.email, self.token, self.expire.to_string()],
         )?;
         Ok(())
     }

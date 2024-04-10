@@ -74,6 +74,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
                     match decode_jwt(access_token, public_key_bytes) {
                         Ok(claims) => {
                             println!("ID do usuário: {}", claims.sub);
+                            println!("exp: {}", claims.exp);
                             
                             let conn = match Connection::open("dados_dec.db") {
                                 Ok(conn) => conn,
@@ -87,6 +88,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
                                 user_id: claims.sub.to_string(),
                                 email: email.to_string(),
                                 token: access_token.to_string(),
+                                expire:claims.exp.to_string()
                             };
                             
                             user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
