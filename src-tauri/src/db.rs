@@ -1,4 +1,6 @@
-use rusqlite::{Connection, Result};
+use std::fmt;
+
+use rusqlite::{params,Connection, Result};
 
 pub struct DbConn {
     pub conn: Connection,
@@ -6,11 +8,35 @@ pub struct DbConn {
 
 // user logica
 #[derive(Debug)]
-pub struct user {
-    id: String,
-    name: String,
-    email: String,
-    token: String
+pub struct UserToken {
+    pub user_id: String,
+    pub email: String,
+    pub token: String,
+}
+
+ impl UserToken {
+   
+    pub fn create_user_table(conn: &Connection) -> Result<()> {
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS user_tokens (
+                id INTEGER PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                token TEXT NOT NULL
+            )",
+            [],
+        )?;
+        Ok(())
+    }
+
+   
+    pub fn insert_to_user(&self, conn: &Connection) -> Result<()> {
+        conn.execute(
+            "INSERT INTO user_tokens (user_id, email, token) VALUES (?1, ?2, ?3)",
+            params![self.user_id, self.email, self.token],
+        )?;
+        Ok(())
+    }
 }
 
 

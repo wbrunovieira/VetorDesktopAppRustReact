@@ -5,18 +5,21 @@
 mod resources;
 mod file;
 mod jwt;
+mod db;
 mod system;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
 
 use reqwest;
 
 
+
+use crate::db::UserToken;
 use crate::file::{read_file, read_files_dec};
 use crate::resources::public_key::load_public_key;
 use crate::jwt::decode_jwt;
 
 use rusqlite::{Connection, Result};
-use serde_json::{Value, Error}; 
+use serde_json::Value; 
 
 use std::io::{self, Write};
 
@@ -24,9 +27,6 @@ use std::io::{self, Write};
 #[tokio::main]
 async fn main() -> Result<()> {
 
-   
-    
-   
 
     system::print_system_info();
 
@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
 
 #[tauri::command]
 async fn authenticate_login(email: &str, password: &str) -> Result<String, String> {
-    // Carrega a chave pública
+    
     let public_key = load_public_key().expect("erro a carregar public key");
     println!("public_key: {:?}", public_key);
 
@@ -63,7 +63,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
             if let Ok(response_text) = response.text().await {
                 println!("Token (JSON): {}", response_text);
 
-                // Deserializa a string JSON para acessar o access_token
+               
                 let v: Value = serde_json::from_str(&response_text).map_err(|_| "Erro ao parsear JSON")?;
                 
                 if let Some(access_token) = v["access_token"].as_str() {
@@ -74,6 +74,24 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
                     match decode_jwt(access_token, public_key_bytes) {
                         Ok(claims) => {
                             println!("ID do usuário: {}", claims.sub);
+                            
+                            let conn = match Connection::open("dados_dec.db") {
+                                Ok(conn) => conn,
+                                Err(e) => return Err(e.to_string()), 
+                            };
+                            UserToken::create_user_table(&conn).map_err(|e| e.to_string())?;
+
+
+                            
+                            let user_token = UserToken {
+                                user_id: claims.sub.to_string(),
+                                email: email.to_string(),
+                                token: access_token.to_string(),
+                            };
+                            
+                            user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
+
+                            
                             return Ok(access_token.to_string());
                         },
                         Err(err) => {
@@ -81,6 +99,10 @@ async fn authenticate_login(email: &str, password: &str) -> Result<String, Strin
                             return Err("Erro ao decodificar o token".into());
                         },
                     }
+                    
+                    
+                 
+                    
                 } else {
                     return Err("Token de acesso não encontrado.".into());
                 }
