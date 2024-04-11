@@ -18,6 +18,46 @@ const Home: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [originalUsers, setOriginalUsers] = useState<User[]>([]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const filteredUsers = users.filter((user) => {
+      return (
+        user.nome.toLowerCase().includes(nome.toLowerCase()) &&
+        user.cpf.includes(cpf)
+      );
+    });
+
+    setUsers(filteredUsers);
+  };
+
+  const filterUsers = (nome: string, cpf: string) => {
+    const filtered = originalUsers.filter(
+      (user) =>
+        user.nome.toLowerCase().includes(nome.toLowerCase()) &&
+        user.cpf.includes(cpf)
+    );
+    setUsers(filtered);
+  };
+
+  const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const novoNome = e.target.value;
+    setNome(novoNome);
+    filterUsers(novoNome, cpf);
+  };
+  const handleAnoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const novoAno = e.target.value;
+    setAno(novoAno);
+    filterUsers(novoAno, ano);
+  };
+
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const novoCpf = e.target.value;
+    setCpf(novoCpf);
+    filterUsers(nome, novoCpf);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,6 +65,7 @@ const Home: React.FC = () => {
         const users: User[] = await invoke('get_users');
         console.log(users);
         setUsers(users);
+        setOriginalUsers(users);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         setError('Falha ao carregar usuários.');
@@ -37,10 +78,6 @@ const Home: React.FC = () => {
   }, []);
 
   const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
 
   if (error) {
     return <div className='error'>{error}</div>;
@@ -73,21 +110,21 @@ const Home: React.FC = () => {
             type='text'
             placeholder='Ano'
             value={ano}
-            onChange={(e) => setAno(e.target.value)}
+            onChange={handleAnoChange}
             className='w-1/4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
           />
           <input
             type='text'
             placeholder='Nome'
             value={nome}
-            onChange={(e) => setNome(e.target.value)}
+            onChange={handleNomeChange}
             className='w-1/4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
           />
           <input
             type='text'
             placeholder='CPF'
             value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
+            onChange={handleCpfChange}
             className='w-1/4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
           />
           <button
