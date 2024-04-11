@@ -98,6 +98,7 @@ pub fn read_files_dec(diretorio: &str) -> Vec<DadosDec> {
                   if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("DEC") {
                       match fs::read_to_string(&path) {
                           Ok(content) => {
+                            if content.len() > 775 {
                               let dados = DadosDec {
                                   cpf: content[21..32].to_string(),
                                   nome: content[39..99].trim().to_string(),
@@ -110,6 +111,9 @@ pub fn read_files_dec(diretorio: &str) -> Vec<DadosDec> {
                                   pagamentos_doacoes_outros: content[762..775].to_string(),
                               };
                               dados_dec.push(dados);
+                            } else {
+                              println!("Arquivo {:?} não possui dados suficientes.", path.file_name().unwrap());
+                            }
                           },
                           Err(e) => {
                               println!("Erro ao ler o arquivo {:?}: {}", path.file_name().unwrap(), e);
