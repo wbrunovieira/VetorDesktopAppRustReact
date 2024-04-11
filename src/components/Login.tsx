@@ -19,11 +19,18 @@ const Login: React.FC = () => {
     e.preventDefault();
 
     try {
-      const response = await invoke('authenticate_login', { email, password });
-
-      console.log(response);
+      const isAuthenticated = await invoke('authenticate_login', {
+        email,
+        password,
+      });
+      console.log('Autenticação bem-sucedida:', isAuthenticated);
+      if (isAuthenticated) {
+        // Redirecionar para a página desejada após o login bem-sucedido
+        navigate('/home');
+      }
     } catch (error) {
       console.error('Erro na autenticação:', error);
+      // Aqui você pode definir uma mensagem de erro para exibir ao usuário
     }
   };
 

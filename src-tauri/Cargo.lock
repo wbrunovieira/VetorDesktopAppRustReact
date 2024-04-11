@@ -537,8 +537,10 @@ checksum = "8a0d04d43504c61aa6c7531f1871dd0d418d91130162063b789da00fd7057a5e"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.4",
 ]
 
@@ -2012,6 +2014,7 @@ checksum = "8f518f335dce6725a761382244631d86cf0ccb2863413590b31338feb467f9c3"
 name = "ir-conferir"
 version = "0.0.0"
 dependencies = [
+ "chrono",
  "jsonwebtoken",
  "mac_address",
  "reqwest 0.12.3",

@@ -20,6 +20,7 @@ sys-info = "0.9"
 reqwest = { version = "0.12.2", features = ["json"] } 
 tokio = { version = "1", features = ["full"] }
 jsonwebtoken = "9.3.0"
+chrono = "0.4.37"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
