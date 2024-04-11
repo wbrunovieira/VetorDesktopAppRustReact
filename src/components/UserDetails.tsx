@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/tauri';
+
 interface User {
   cpf: string;
   nome: string;
@@ -18,7 +19,7 @@ const UserDetails: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -50,6 +51,13 @@ const UserDetails: React.FC = () => {
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark'>
+      <button
+        type='submit'
+        className=' px-2 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors h-6 text-xs shadow-lg mb-6'
+        onClick={() => navigate('/home')}
+      >
+        voltar
+      </button>
       <div className='max-w-4xl w-full px-6 py-8 bg-primary-moreLighter shadow-md rounded-md h-[70%]'>
         <h1 className='text-3xl text-center text-primary-almostBlack mb-8'>
           Detalhes do Usuário
