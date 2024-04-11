@@ -6,6 +6,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -70,7 +71,7 @@ const Login: React.FC = () => {
               required
             />
           </div>
-          <div className='mb-4'>
+          <div className='mb-4 relative'>
             <label
               htmlFor='password'
               className='block mb-2 text-sm font-medium text-primary-dark'
@@ -78,13 +79,21 @@ const Login: React.FC = () => {
               Senha
             </label>
             <input
-              type='password'
+              type={showPassword ? 'text' : 'password'}
               id='password'
               className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark focus:border-primary-dark'
               value={password}
               onChange={handlePasswordChange}
               required
             />
+            <button
+              type='button'
+              className='absolute inset-y-0 right-0 pr-3 flex items-center text-xs leading-5 pt-6'
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {/* Ícone ou texto aqui */}
+              {showPassword ? 'Esconder' : 'Mostrar'}
+            </button>
           </div>
           <button
             type='submit'
