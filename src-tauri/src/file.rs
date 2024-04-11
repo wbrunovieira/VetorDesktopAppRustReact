@@ -2,9 +2,9 @@ use std::{env, fs::{self, File}, io::Read, path::Path};
 use std::io::Write;
 use std::fmt;
 use rusqlite::{Connection, Result};
+use serde::Serialize;
 
-
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct DadosDec {
     cpf: String,
     nome: String,
@@ -16,6 +16,9 @@ pub struct DadosDec {
     doacoes_politicas: String,
     pagamentos_doacoes_outros: String,
 }
+
+
+
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct UserInfo {
@@ -191,4 +194,39 @@ pub fn get_users() -> Result<Vec<UserInfo>, String> {
     let users: Result<Vec<_>, _> = users_iter.collect();
     users.map_err(|e| e.to_string())
 }
+#[tauri::command]
+pub fn get_user_by_cpf(cpf: String) -> Result<DadosDec, String> {
+    
+    let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
+    let conn = Connection::open(path_to_db)
+        .map_err(|e| e.to_string())?;
 
+    
+    let mut statement = conn
+        .prepare("SELECT cpf, nome, exercicio, rend_tributaveis, rend_isentos, rend_exclusivos, juros, doacoes_politicas, pagamentos_doacoes_outros FROM dados_dec WHERE cpf = ?")
+        .map_err(|e| e.to_string())?;
+
+    
+    let mut user_iter = statement
+        .query_map([&cpf], |row| {
+            Ok(DadosDec {
+                cpf: row.get(0)?,
+                nome: row.get(1)?,
+                exercicio: row.get(2)?,
+                rend_tributaveis: row.get(3)?,
+                rend_isentos: row.get(4)?,
+                rend_exclusivos: row.get(5)?,
+                juros: row.get(6)?,
+                doacoes_politicas: row.get(7)?,
+                pagamentos_doacoes_outros: row.get(8)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+  
+    if let Some(result) = user_iter.next() {
+        result.map_err(|e| e.to_string())
+    } else {
+        Err("Usuário não encontrado.".to_string())
+    }
+}

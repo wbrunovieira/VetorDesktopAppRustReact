@@ -119,24 +119,28 @@ const Home: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {users
-                ? users.map((usuario, index) => (
-                    <tr key={index} className='bg-primary-light border-b'>
-                      <th
-                        scope='row'
-                        className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'
-                      >
-                        {usuario.nome}
-                      </th>
-                      <td className='py-4 px-6'>{usuario.cpf}</td>
-                      <td className='py-4 px-6'>{usuario.grupo}</td>
-                      <td className='py-4 px-6'>
-                        {usuario.ativo ? 'Sim' : 'Não'}
-                      </td>
-                      <td className='py-4 px-6'>{usuario.statusFinanceiro}</td>
-                    </tr>
-                  ))
-                : null}
+              {users.map((usuario, index) => (
+                <Link
+                  to={`/usuario/${usuario.cpf}`}
+                  key={index}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <tr className='bg-primary-light border-b cursor-pointer hover:bg-primary-moreLighter'>
+                    <th
+                      scope='row'
+                      className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'
+                    >
+                      {usuario.nome}
+                    </th>
+                    <td className='py-4 px-6'>{usuario.cpf}</td>
+                    <td className='py-4 px-6'>{usuario.grupo}</td>
+                    <td className='py-4 px-6'>
+                      {usuario.ativo ? 'Sim' : 'Não'}
+                    </td>
+                    <td className='py-4 px-6'>{usuario.statusFinanceiro}</td>
+                  </tr>
+                </Link>
+              ))}
             </tbody>
           </table>
         </div>

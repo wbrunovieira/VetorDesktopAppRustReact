@@ -7,7 +7,7 @@ mod file;
 mod jwt;
 mod db;
 mod system;
-use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
+use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users, get_user_by_cpf};
 
 use reqwest;
 use chrono::Utc;
@@ -126,7 +126,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
 
    
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![test_connection, authenticate_login, get_users])
+        .invoke_handler(tauri::generate_handler![test_connection, authenticate_login, get_users, get_user_by_cpf])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
