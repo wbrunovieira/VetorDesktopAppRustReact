@@ -23,14 +23,11 @@ const Login: React.FC = () => {
         email,
         password,
       });
-      console.log('Autenticação bem-sucedida:', isAuthenticated);
-      if (isAuthenticated) {
-        // Redirecionar para a página desejada após o login bem-sucedido
-        navigate('/home');
-      }
+      console.log('Resultado da Autenticação:', isAuthenticated);
+
+      navigate('/home');
     } catch (error) {
       console.error('Erro na autenticação:', error);
-      // Aqui você pode definir uma mensagem de erro para exibir ao usuário
     }
   };
 

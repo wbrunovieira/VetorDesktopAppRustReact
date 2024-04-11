@@ -60,7 +60,7 @@ const Home: React.FC = () => {
           <button
             type='submit'
             className=' px-2 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors h-6 text-xs shadow-lg'
-            onClick={() => navigate('/Login')}
+            onClick={() => navigate('/')}
           >
             sair
           </button>

@@ -10,6 +10,7 @@ mod system;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users};
 
 use reqwest;
+use chrono::Utc;
 
 use tokio::task;
 
@@ -19,6 +20,7 @@ use crate::resources::public_key::load_public_key;
 use crate::jwt::decode_jwt;
 
 use rusqlite::{Connection, Result, params};
+use rusqlite::OptionalExtension; 
 use serde_json::Value; 
 
 use std::io::{self, Write};
@@ -37,69 +39,60 @@ async fn main() -> Result<()> {
         io::stdout().flush().unwrap(); 
         message 
 }
- 
+
 #[tauri::command]
 async fn authenticate_login(email: &str, password: &str) -> Result<bool, String> {
-    // Carregar a chave pública, necessária para a decodificação do JWT.
-    let public_key = match load_public_key() {
-        Ok(key) => key,
-        Err(_) => return Err("Erro ao carregar a chave pública.".into()),
-    };
-
-    // Tenta fazer a autenticação utilizando a API.
+    let public_key = load_public_key().map_err(|_| "Erro ao carregar a chave pública.")?;
     let client = reqwest::Client::new();
-    let response = client.post("http://localhost:3333/auth")
+    let response = client
+        .post("http://localhost:3333/auth")
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
-        .await;
+        .await
+        .map_err(|_| "Erro ao enviar requisição")?;
 
-    match response {
-        Ok(res) if res.status().is_success() => {
-            if let Ok(response_text) = res.text().await {
-                // Parseia a resposta para extrair o token de acesso.
-                if let Ok(v) = serde_json::from_str::<Value>(&response_text) {
-                    if let Some(access_token) = v["access_token"].as_str() {
-                        // Decodifica o JWT para obter os claims.
-                        let public_key_bytes = public_key.as_bytes(); 
-                        match decode_jwt(access_token, public_key_bytes) {
-                            Ok(claims) => {
-                                // Abre a conexão com o banco de dados e insere o token.
-                                match Connection::open("dados_dec.db") {
-                                    Ok(conn) => {
-                                        if let Err(e) = UserToken::create_user_table(&conn) {
-                                            return Err(e.to_string());
-                                        }
-
-                                        let user_token = UserToken {
-                                            user_id: claims.sub.to_string(),
-                                            email: email.to_string(),
-                                            token: access_token.to_string(),
-                                            expire: claims.exp.to_string(),
-                                        };
-
-                                        match user_token.insert_to_user(&conn) {
-                                            Ok(_) => return Ok(true),
-                                            Err(e) => return Err(e.to_string()),
-                                        }
-                                    },
-                                    Err(e) => return Err(e.to_string()),
-                                }
-                            },
-                            Err(_) => return Ok(false),
-                        }
-                    } else {
-                        return Ok(false);
-                    }
-                } else {
-                    return Ok(false);
-                }
-            } else {
-                return Ok(false);
-            }
-        },
-        _ => return Ok(false),
+    if !response.status().is_success() {
+        return Err("Erro ao fazer login".into());
     }
+
+    let response_text = response.text().await.map_err(|_| "Erro ao extrair o corpo da resposta")?;
+    let v: Value = serde_json::from_str(&response_text).map_err(|_| "Erro ao parsear JSON")?;
+    let access_token = v["access_token"].as_str().ok_or("Token de acesso não encontrado.")?;
+
+    let public_key_bytes = public_key.as_bytes();
+    let claims = decode_jwt(access_token, public_key_bytes).map_err(|_| "Erro ao decodificar o token .")?;
+
+    let conn = Connection::open("dados_dec.db").map_err(|e| e.to_string())?;
+    UserToken::create_user_table(&conn).map_err(|e| e.to_string())?;
+
+    let token_data: Option<(String,)> = conn
+        .query_row("SELECT expire FROM user_tokens WHERE email = ?", &[&email], |row| Ok((row.get(0)?,)))
+        .optional()
+        .map_err(|e| e.to_string())?;
+
+    if let Some((expire_str,)) = token_data {
+        let expire = expire_str.parse::<i64>().unwrap_or(0);
+        let now = Utc::now().timestamp();
+        if now < expire {
+            return Ok(false);
+        } else {
+            conn.execute("DELETE FROM user_tokens WHERE email = ?", &[&email])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+
+    let user_token = UserToken {
+        user_id: claims.sub,
+        email: email.to_string(),
+        token: access_token.to_string(),
+        expire: claims.exp.to_string(),
+    };
+
+    user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
+    Ok(true)
 }
+
+
 
 // #[tauri::command]
 // async fn authenticate_login(email: &str, password: &str) ->Result<bool, String> {
