@@ -9,7 +9,7 @@ mod db;
 mod system;
 use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_users, get_user_by_cpf};
 
-use system::{send_device_data, get_system_info};
+use system::{send_device_data, get_system_info, check_device_registered};
 use reqwest;
 use chrono::Utc;
 
@@ -41,91 +41,7 @@ async fn main() -> Result<()> {
         message 
 }
 
-// #[tauri::command]
-// async fn authenticate_login(email: &str, password: &str) -> Result<bool, String> {
-//     println!("Iniciando processo de autenticação...");
-//     let public_key = load_public_key().map_err(|_| "Erro ao carregar a chave pública.")?;
-//     let client = reqwest::Client::new();
-//     let response = client
-//         .post("http://localhost:3333/auth")
-//         .json(&serde_json::json!({ "email": email, "password": password }))
-//         .send()
-//         .await
-//         .map_err(|_| "Erro ao enviar requisição")?;
 
-//     if !response.status().is_success() {
-//         return Err("Erro ao fazer login".into());
-//     }
-
-//     println!("Login bem-sucedido, processando informações do dispositivo...");
-//     let device_info = get_system_info();
-//     println!("Informações do dispositivo coletadas: {:?}", device_info);
-//     match send_device_data(device_info).await {
-//         Ok(_) => println!("Dados do dispositivo enviados com sucesso."),
-//         Err(e) => println!("Erro ao enviar dados do dispositivo: {}", e),
-//     }
-
-//     Ok(true)
-// }
-
-
-// #[tauri::command]
-// async fn authenticate_login(email: &str, password: &str) -> Result<bool, String> {
-//     let public_key = load_public_key().map_err(|_| "Erro ao carregar a chave pública.")?;
-//     let client = reqwest::Client::new();
-//     let response = client
-//         .post("http://localhost:3333/auth")
-//         .json(&serde_json::json!({ "email": email, "password": password }))
-//         .send()
-//         .await
-//         .map_err(|_| "Erro ao enviar requisição")?;
-
-//     if !response.status().is_success() {
-//         return Err("Erro ao fazer login".into());
-//     }
-
-//     let response_text = response.text().await.map_err(|_| "Erro ao extrair o corpo da resposta")?;
-//     let v: Value = serde_json::from_str(&response_text).map_err(|_| "Erro ao parsear JSON")?;
-//     let access_token = v["access_token"].as_str().ok_or("Token de acesso não encontrado.")?;
-
-//     let public_key_bytes = public_key.as_bytes();
-//     let claims = decode_jwt(access_token, public_key_bytes).map_err(|_| "Erro ao decodificar o token .")?;
-
-//     let conn = Connection::open("dados_dec.db").map_err(|e| e.to_string())?;
-//     UserToken::create_user_table(&conn).map_err(|e| e.to_string())?;
-
-//     let token_data: Option<(String,)> = conn
-//         .query_row("SELECT expire FROM user_tokens WHERE email = ?", &[&email], |row| Ok((row.get(0)?,)))
-//         .optional()
-//         .map_err(|e| e.to_string())?;
-
-//     if let Some((expire_str,)) = token_data {
-//         let expire = expire_str.parse::<i64>().unwrap_or(0);
-//         let now = Utc::now().timestamp();
-//         if now < expire {
-//             return Ok(false);
-//         } else {
-//             conn.execute("DELETE FROM user_tokens WHERE email = ?", &[&email])
-//                 .map_err(|e| e.to_string())?;
-//         }
-//     }
-
-//     let user_token = UserToken {
-//         user_id: claims.sub,
-//         email: email.to_string(),
-//         token: access_token.to_string(),
-//         expire: claims.exp.to_string(),
-//     };
-
-//     user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
-
-//     let device_info = get_system_info();
-//     println!("device info : {:?}", device_info);
-//     send_device_data(device_info).await.map_err(|e| format!("Erro ao enviar dados do dispositivo: {}", e))?;
-
-//     Ok(true)
-    
-// }
 
 #[tauri::command]
 async fn authenticate_login(email: &str, password: &str) -> Result<bool, String> {
@@ -152,8 +68,10 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     let conn = Connection::open("dados_dec.db").map_err(|e| e.to_string())?;
     UserToken::create_user_table(&conn).map_err(|e| e.to_string())?;
 
+    let user_id = claims.sub.clone();
+
     let user_token = UserToken {
-        user_id: claims.sub.clone(),
+        user_id: claims.sub,
         email: email.to_string(),
         token: access_token.to_string(),
         expire: claims.exp.to_string(),
@@ -162,15 +80,27 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
 
     let device_name = format!("{} - {}", sys_info::hostname().unwrap_or_default(), sys_info::os_type().unwrap_or_default());
-    let device_info = get_system_info(device_name, claims.sub);
+    let device_info = get_system_info(device_name, user_id.clone());
+
     println!("Informações do dispositivo coletadas: {:?}", device_info);
     println!("Preparando para enviar dados do dispositivo...");
-    let send_result = send_device_data(device_info).await;
-    if let Err(e) = send_result {
-        println!("Erro ao enviar dados do dispositivo: {}", e);
+
+    println!("Verificando se o dispositivo já está registrado...");
+    let is_registered = check_device_registered(&device_info.macNumber, &user_id).await?;
+    if is_registered {
+        println!("Dispositivo já registrado. Não será criado novamente.");
+        return Ok(true); 
     } else {
-        println!("Dados do dispositivo enviados com sucesso.");
+        println!("Dispositivo não registrado. Criando novo registro...");
+        let send_result = send_device_data(device_info).await;
+        if let Err(e) = send_result {
+            println!("Erro ao enviar dados do dispositivo: {}", e);
+        } else {
+            println!("Dados do dispositivo enviados com sucesso.");
+        }
     }
+
+ 
     
     Ok(true)
 }

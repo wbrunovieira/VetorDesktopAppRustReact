@@ -65,5 +65,32 @@ pub fn get_system_info(name: String, user_id: String) -> DeviceInfo {
     }
 }
 
+#[tauri::command]
+pub async fn check_device_registered(mac_number: &str, user_id: &str) -> Result<bool, String> {
+    let client = reqwest::Client::new();
+    let response = client
+        .post("http://localhost:3333/devices/check-mac")
+        .json(&serde_json::json!({
+            "macNumber": mac_number,
+            "userId": user_id
+        }))
+        .send()
+        .await
+        .map_err(|_| "Erro ao enviar requisição para verificar dispositivo")?;
+
+    if response.status().is_success() {
+        let response_text = response.text().await.map_err(|_| "Erro ao extrair o corpo da resposta")?;
+        match response_text.trim() {
+            "true" => Ok(true),
+            "false" => Ok(false),
+            _ => Err("Resposta não reconhecida".into())
+        }
+    } else {
+        Err(format!("Falha ao verificar dispositivo: Status {}", response.status()))
+    }
+}
+
+
+
 
 
