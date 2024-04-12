@@ -70,6 +70,18 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
 
     let user_id = claims.sub.clone();
 
+    let device_name = format!("{} - {}", sys_info::hostname().
+    unwrap_or_default(), sys_info::os_type().unwrap_or_default());
+    println!("Nome do dispositivo: {}", device_name);
+    let device_info = get_system_info(device_name, user_id.clone());
+    println!("Informações do dispositivo: {:?}", device_info);
+    let is_registered = check_device_registered(&device_info.macNumber, &user_id).await?;
+    println!("Dispositivo registrado: {}", is_registered);
+    if is_registered {
+        println!("Dispositivo já registrado. Permitindo login.");
+        return Ok(true);
+    }
+
     let device_count_url = format!("http://localhost:3333/users/{}/devices-count", user_id);
     println!("device url: {}", device_count_url);
 
@@ -98,8 +110,8 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
 
 
-    let device_name = format!("{} - {}", sys_info::hostname().unwrap_or_default(), sys_info::os_type().unwrap_or_default());
-    let device_info = get_system_info(device_name, user_id.clone());
+ 
+
 
     println!("Informações do dispositivo coletadas: {:?}", device_info);
     println!("Preparando para enviar dados do dispositivo...");
