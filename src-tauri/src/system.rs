@@ -1,26 +1,69 @@
+use serde::{Deserialize, Serialize};
 // No arquivo system.rs
 use sys_info;
 use mac_address::get_mac_address;
 
-pub fn print_system_info() {
-    match sys_info::os_type() {
-        Ok(os_type) => println!("Tipo de SO: {}", os_type),
-        Err(e) => println!("Não foi possível obter o tipo de SO: {}", e),
-    }
 
-    match sys_info::os_release() {
-        Ok(os_release) => println!("Release de SO: {}", os_release),
-        Err(e) => println!("Não foi possível obter o release de SO: {}", e),
-    }
 
-    match sys_info::hostname() {
-        Ok(hostname) => println!("Hostname: {}", hostname),
-        Err(e) => println!("Não foi possível obter o hostname: {}", e),
-    }
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeviceInfo {
+    pub name: String,
+    pub userId: String,  
+    pub os: String,      
+    pub version: String, 
+    pub hostname: String,
+    pub macNumber: String, 
+}
 
-    match get_mac_address() {
-        Ok(Some(mac_address)) => println!("Endereço MAC encontrado: {:?}", mac_address),
-        Ok(None) => println!("Nenhum endereço MAC disponível."),
-        Err(e) => println!("Erro ao obter o endereço MAC: {}", e),
+
+
+#[tauri::command]
+pub async fn send_device_data(device_info: DeviceInfo) -> Result<(), String> {
+    let client = reqwest::Client::new();
+    println!("Enviando dados do dispositivo: {:?}", device_info);  // Logar a informação que está sendo enviada
+
+    let response = client
+        .post("http://localhost:3333/devices")
+        .json(&device_info)
+        .send()
+        .await;
+
+    match response {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                println!("Dispositivo registrado com sucesso.");
+                Ok(())
+            } else {
+                let status = resp.status();
+                let error_text = resp.text().await.unwrap_or_default();
+                println!("Falha ao registrar dispositivo: Status {}, Erro: {}", status, error_text);
+                Err(format!("Falha ao registrar dispositivo: Status {}, Erro: {}", status, error_text))
+            }
+        }
+        Err(e) => {
+            println!("Erro ao conectar com o servidor: {}", e);
+            Err(format!("Erro ao conectar com o servidor: {}", e))
+        }
     }
 }
+
+
+
+pub fn get_system_info(name: String, user_id: String) -> DeviceInfo {
+    let os_type = sys_info::os_type().unwrap_or_else(|_| "Desconhecido".to_string());
+    let os_release = sys_info::os_release().unwrap_or_else(|_| "Desconhecido".to_string());
+    let hostname = sys_info::hostname().unwrap_or_else(|_| "Desconhecido".to_string());
+    let mac_address = get_mac_address().map(|mac| mac.map_or("Nenhum".to_string(), |m| m.to_string())).unwrap_or_else(|_| "Erro".to_string());
+
+    DeviceInfo {
+        name,
+        userId: user_id,
+        os: os_type,
+        version: os_release, 
+        hostname,
+        macNumber: mac_address,
+    }
+}
+
+
+
