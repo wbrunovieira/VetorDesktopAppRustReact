@@ -37,9 +37,13 @@ const Login: React.FC = () => {
         password,
       });
       console.log('Resultado da Autenticação:', isAuthenticated);
-      localStorage.setItem('email', encryptData(email));
-      localStorage.setItem('password', encryptData(password));
-      navigate('/home');
+      if (isAuthenticated) {
+        localStorage.setItem('email', encryptData(email));
+        localStorage.setItem('password', encryptData(password));
+        navigate('/home');
+      } else {
+        console.error('acesso negado');
+      }
     } catch (error) {
       console.error('Erro na autenticação:', error);
     }

@@ -70,6 +70,24 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
 
     let user_id = claims.sub.clone();
 
+    let device_count_url = format!("http://localhost:3333/users/{}/devices-count", user_id);
+    println!("device url: {}", device_count_url);
+
+    let device_count_response = client.get(&device_count_url).send().await.map_err(|_| "Erro ao consultar a quantidade de dispositivos")?;
+    println!("device count response: {:?}", device_count_response);
+
+    let device_count_text = device_count_response.text().await.unwrap_or_default();
+    println!( "device count text: {}", device_count_text);
+    let device_count_json: Value = serde_json::from_str(&device_count_text).unwrap_or_default();
+    println!("device count json: {:?}", device_count_json);
+    let device_count: i32 = device_count_json["devicesCount"].as_i64().unwrap_or(0) as i32;
+    println!("Quantidade de dispositivos: {}", device_count);
+
+    if device_count >= 5 {
+        println!("Usuário excedeu o limite de dispositivos permitidos.");
+        return Ok(false);
+    }
+
     let user_token = UserToken {
         user_id: claims.sub,
         email: email.to_string(),
@@ -78,6 +96,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     };
 
     user_token.insert_to_user(&conn).map_err(|e| e.to_string())?;
+
 
     let device_name = format!("{} - {}", sys_info::hostname().unwrap_or_default(), sys_info::os_type().unwrap_or_default());
     let device_info = get_system_info(device_name, user_id.clone());
@@ -99,6 +118,8 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
             println!("Dados do dispositivo enviados com sucesso.");
         }
     }
+ 
+
 
  
     
