@@ -19,6 +19,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -30,22 +31,22 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage('');
 
     try {
-      const isAuthenticated = await invoke('authenticate_login', {
-        email,
-        password,
-      });
-      console.log('Resultado da Autenticação:', isAuthenticated);
-      if (isAuthenticated) {
+      const result = await invoke('authenticate_login', { email, password });
+      console.log('Resultado da Autenticação:', result);
+      if (result === true) {
         localStorage.setItem('email', encryptData(email));
         localStorage.setItem('password', encryptData(password));
         navigate('/home');
-      } else {
-        console.error('acesso negado');
+      } else if (typeof result === 'string') {
+        console.log('Erro recebido:', result);
+        setErrorMessage(result);
       }
     } catch (error) {
       console.error('Erro na autenticação:', error);
+      setErrorMessage('Erro na conexão com o servidor.');
     }
   };
 
@@ -78,6 +79,9 @@ const Login: React.FC = () => {
         <h2 className='text-2xl font-bold mb-2 text-center mt-4 text-primary-almostBlack'>
           Login
         </h2>
+        {errorMessage && (
+          <div className='text-red-500 text-center'>{errorMessage}</div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
             <label

@@ -11,17 +11,16 @@ use file::{create_file, get_path_from_user,insert_dados_dec,create_table, get_us
 
 use system::{send_device_data, get_system_info, check_device_registered};
 use reqwest;
-use chrono::Utc;
 
-use tokio::task;
+
 
 use crate::db::UserToken;
 use crate::file::{read_file, read_files_dec};
 use crate::resources::public_key::load_public_key;
 use crate::jwt::decode_jwt;
 
-use rusqlite::{Connection, Result, params};
-use rusqlite::OptionalExtension; 
+use rusqlite::{Connection, Result};
+
 use serde_json::Value; 
 
 use std::io::{self, Write};
@@ -51,14 +50,16 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
         .post("http://localhost:3333/auth")
         .json(&serde_json::json!({ "email": email, "password": password }))
         .send()
-        .await
-        .map_err(|_| "Erro ao enviar requisição")?;
-
-    if !response.status().is_success() {
-        return Err("Erro ao fazer login".into());
-    }
-
-    let response_text = response.text().await.map_err(|_| "Erro ao extrair o corpo da resposta")?;
+        .await;
+        // .map_err(|_| "Erro ao enviar requisição")?;
+        if response.is_err() {
+            return Err("Erro ao enviar requisição".into());
+        }
+        let resp = response.unwrap();
+        if !resp.status().is_success() {
+            return Err("Email ou senha incorretos".into());
+        }
+    let response_text = resp.text().await.map_err(|_| "Erro ao extrair o corpo da resposta")?;
     let v: Value = serde_json::from_str(&response_text).map_err(|_| "Erro ao parsear JSON")?;
     let access_token = v["access_token"].as_str().ok_or("Token de acesso não encontrado.")?;
 
@@ -96,8 +97,7 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     println!("Quantidade de dispositivos: {}", device_count);
 
     if device_count >= 5 {
-        println!("Usuário excedeu o limite de dispositivos permitidos.");
-        return Ok(false);
+        return Err("Número de dispositivos excedeu o limite".into());
     }
 
     let user_token = UserToken {
@@ -132,8 +132,6 @@ async fn authenticate_login(email: &str, password: &str) -> Result<bool, String>
     }
  
 
-
- 
     
     Ok(true)
 }
