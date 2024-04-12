@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/tauri';
+import CryptoJS from 'crypto-js';
+
+const secretKey = 'SUA_CHAVE_SECRETA';
+
+const encryptData = (data: any) => {
+  return CryptoJS.AES.encrypt(data, secretKey).toString();
+};
+
+const decryptData = (ciphertext: any) => {
+  const bytes = CryptoJS.AES.decrypt(ciphertext, secretKey);
+  return bytes.toString(CryptoJS.enc.Utf8);
+};
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +37,8 @@ const Login: React.FC = () => {
         password,
       });
       console.log('Resultado da Autenticação:', isAuthenticated);
-
+      localStorage.setItem('email', encryptData(email));
+      localStorage.setItem('password', encryptData(password));
       navigate('/home');
     } catch (error) {
       console.error('Erro na autenticação:', error);
@@ -33,6 +46,13 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
+    const savedEmail = localStorage.getItem('email');
+    const savedPassword = localStorage.getItem('password');
+
+    if (savedEmail && savedPassword) {
+      setEmail(decryptData(savedEmail));
+      setPassword(decryptData(savedPassword));
+    }
     const checkBackendConnection = async () => {
       try {
         const response = await invoke('test_connection');
