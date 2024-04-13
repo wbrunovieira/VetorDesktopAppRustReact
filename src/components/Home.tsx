@@ -135,22 +135,37 @@ const Home: React.FC = () => {
           </button>
         </form>
         <div className='overflow-x-auto relative shadow-md sm:rounded-lg'>
-          <table className='w-full text-sm text-left text-gray-500'>
+          <table className='w-full text-sm text-left text-gray-500  table-fixed'>
             <thead className='text-xs text-primary-moreLighter uppercase bg-primary'>
-              <tr>
-                <th scope='col' className='py-3 px-6'>
+              <tr className=''>
+                <th
+                  scope='col'
+                  className='py-3 px-6 align-middle text-left w-1/5'
+                >
                   Nome
                 </th>
-                <th scope='col' className='py-3 px-6'>
+                <th
+                  scope='col'
+                  className='py-3 px-6 align-middle text-left w-1/5'
+                >
                   CPF
                 </th>
-                <th scope='col' className='py-3 px-6'>
+                <th
+                  scope='col'
+                  className='py-3 px-6 align-middle text-left w-1/5'
+                >
                   Grupo
                 </th>
-                <th scope='col' className='py-3 px-6'>
+                <th
+                  scope='col'
+                  className='py-3 px-6 align-middle text-left w-1/5'
+                >
                   Ativo
                 </th>
-                <th scope='col' className='py-3 px-6'>
+                <th
+                  scope='col'
+                  className='py-3 px-6 align-middle text-left w-1/5'
+                >
                   Estatus Financeiro
                 </th>
               </tr>
@@ -160,21 +175,27 @@ const Home: React.FC = () => {
                 <Link
                   to={`/usuario/${usuario.cpf}`}
                   key={index}
-                  style={{ textDecoration: 'none' }}
+                  className='decoration-none'
                 >
-                  <tr className='bg-primary-light border-b cursor-pointer hover:bg-primary-moreLighter'>
-                    <th
+                  <tr className='bg-primary-light border-b cursor-pointer hover:bg-primary-moreLighter text-[10px]'>
+                    <td
                       scope='row'
-                      className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'
+                      className='py-4 px-6 align-middle text-left w-1/5'
                     >
                       {usuario.nome}
-                    </th>
-                    <td className='py-4 px-6'>{usuario.cpf}</td>
-                    <td className='py-4 px-6'>{usuario.grupo}</td>
-                    <td className='py-4 px-6'>
+                    </td>
+                    <td className='py-4 px-6 align-middle text-left w-1/5'>
+                      {usuario.cpf}
+                    </td>
+                    <td className='py-4 px-6 align-middle text-left w-1/5'>
+                      {usuario.grupo}
+                    </td>
+                    <td className='py-4 px-6 align-middle text-left w-1/5'>
                       {usuario.ativo ? 'Sim' : 'Não'}
                     </td>
-                    <td className='py-4 px-6'>{usuario.statusFinanceiro}</td>
+                    <td className='py-4 px-6 align-middle text-left w-1/5'>
+                      {usuario.statusFinanceiro}
+                    </td>
                   </tr>
                 </Link>
               ))}
