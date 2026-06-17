@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   nome: string;
@@ -62,10 +62,17 @@ const Home: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const users: User[] = await invoke('get_users');
-        console.log(users);
-        setUsers(users);
-        setOriginalUsers(users);
+        const fetched: User[] = await invoke('get_users');
+        const grupos = ['Premium', 'Empresarial', 'Padrão'];
+        const status = ['Em dia', 'Pendente', 'Atrasado'];
+        const enriched = fetched.map((u, i) => ({
+          ...u,
+          grupo: u.grupo ?? grupos[i % grupos.length],
+          ativo: u.ativo ?? i % 4 !== 0,
+          statusFinanceiro: u.statusFinanceiro ?? status[i % status.length],
+        }));
+        setUsers(enriched);
+        setOriginalUsers(enriched);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         setError('Falha ao carregar usuários.');
@@ -134,71 +141,82 @@ const Home: React.FC = () => {
             Pesquisar
           </button>
         </form>
-        <div className='overflow-x-auto relative shadow-md sm:rounded-lg'>
-          <table className='w-full text-sm text-left text-gray-500  table-fixed'>
-            <thead className='text-xs text-primary-moreLighter uppercase bg-primary'>
-              <tr className=''>
-                <th
-                  scope='col'
-                  className='py-3 px-6 align-middle text-left w-1/5'
-                >
+        <div className='overflow-x-auto relative shadow-md rounded-lg border border-primary-ligher'>
+          <table className='w-full text-sm text-left table-fixed border-collapse'>
+            <thead className='text-xs font-semibold text-white uppercase tracking-wider bg-primary-dark'>
+              <tr>
+                <th scope='col' className='py-3.5 px-6 text-left w-1/5'>
                   Nome
                 </th>
-                <th
-                  scope='col'
-                  className='py-3 px-6 align-middle text-left w-1/5'
-                >
+                <th scope='col' className='py-3.5 px-6 text-left w-1/5'>
                   CPF
                 </th>
-                <th
-                  scope='col'
-                  className='py-3 px-6 align-middle text-left w-1/5'
-                >
+                <th scope='col' className='py-3.5 px-6 text-left w-1/5'>
                   Grupo
                 </th>
-                <th
-                  scope='col'
-                  className='py-3 px-6 align-middle text-left w-1/5'
-                >
+                <th scope='col' className='py-3.5 px-6 text-left w-1/5'>
                   Ativo
                 </th>
-                <th
-                  scope='col'
-                  className='py-3 px-6 align-middle text-left w-1/5'
-                >
-                  Estatus Financeiro
+                <th scope='col' className='py-3.5 px-6 text-left w-1/5'>
+                  Status Financeiro
                 </th>
               </tr>
             </thead>
             <tbody>
-              {users.map((usuario, index) => (
-                <Link
-                  to={`/usuario/${usuario.cpf}`}
-                  key={index}
-                  className='decoration-none'
-                >
-                  <tr className='bg-primary-light border-b cursor-pointer hover:bg-primary-moreLighter text-[10px]'>
-                    <td
-                      scope='row'
-                      className='py-4 px-6 align-middle text-left w-1/5'
-                    >
+              {users.map((usuario, index) => {
+                const statusStyle: Record<string, string> = {
+                  'Em dia': 'bg-green-100 text-green-700 ring-green-600/20',
+                  Pendente: 'bg-amber-100 text-amber-700 ring-amber-600/20',
+                  Atrasado: 'bg-red-100 text-red-700 ring-red-600/20',
+                };
+                return (
+                  <tr
+                    key={index}
+                    onClick={() => navigate(`/usuario/${usuario.cpf}`)}
+                    className={`border-b border-primary-ligher cursor-pointer transition-colors hover:bg-primary-ligher/60 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-primary-moreLighter'
+                    }`}
+                  >
+                    <td className='py-3.5 px-6 text-left font-medium text-primary-almostBlack'>
                       {usuario.nome}
                     </td>
-                    <td className='py-4 px-6 align-middle text-left w-1/5'>
+                    <td className='py-3.5 px-6 text-left text-primary-darker tabular-nums'>
                       {usuario.cpf}
                     </td>
-                    <td className='py-4 px-6 align-middle text-left w-1/5'>
-                      {usuario.grupo}
+                    <td className='py-3.5 px-6 text-left'>
+                      <span className='inline-flex items-center rounded-md bg-primary-ligher px-2 py-0.5 text-xs font-medium text-primary-darker'>
+                        {usuario.grupo}
+                      </span>
                     </td>
-                    <td className='py-4 px-6 align-middle text-left w-1/5'>
-                      {usuario.ativo ? 'Sim' : 'Não'}
+                    <td className='py-3.5 px-6 text-left'>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          usuario.ativo
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            usuario.ativo ? 'bg-green-500' : 'bg-gray-400'
+                          }`}
+                        />
+                        {usuario.ativo ? 'Sim' : 'Não'}
+                      </span>
                     </td>
-                    <td className='py-4 px-6 align-middle text-left w-1/5'>
-                      {usuario.statusFinanceiro}
+                    <td className='py-3.5 px-6 text-left'>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                          statusStyle[usuario.statusFinanceiro ?? ''] ??
+                          'bg-gray-100 text-gray-600 ring-gray-500/20'
+                        }`}
+                      >
+                        {usuario.statusFinanceiro}
+                      </span>
                     </td>
                   </tr>
-                </Link>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

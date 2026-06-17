@@ -178,7 +178,7 @@ pub fn insert_dados_dec(conn: &Connection, dados: &DadosDec) -> Result<()> {
 
 #[tauri::command]
 pub fn get_users() -> Result<Vec<DadosDec>, String> {
-    let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
+    let path_to_db = "dados_dec.db";
     let conn = Connection::open(path_to_db)
         .map_err(|e| e.to_string())?;
     let mut statement = conn
@@ -207,8 +207,8 @@ pub fn get_users() -> Result<Vec<DadosDec>, String> {
 
 #[tauri::command]
 pub fn get_user_by_cpf(cpf: String) -> Result<DadosDec, String> {
-    
-    let path_to_db = "/Users/walterbrunopradovieira/Projects/danielprojects/Vetor/ir-conferir/src-tauri/dados_dec.db";
+
+    let path_to_db = "dados_dec.db";
     let conn = Connection::open(path_to_db)
         .map_err(|e| e.to_string())?;
 

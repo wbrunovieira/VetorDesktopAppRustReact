@@ -49,53 +49,89 @@ const UserDetails: React.FC = () => {
     return <div>Usuário não encontrado.</div>;
   }
 
+  const brl = (v: string) => {
+    const n = Number((v ?? '').trim().replace(/\./g, '').replace(',', '.'));
+    return isNaN(n)
+      ? '—'
+      : n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const initials = user.nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+
+  const rendimentos = [
+    { label: 'Rendimentos Tributáveis', value: user.rend_tributaveis },
+    { label: 'Rendimentos Isentos', value: user.rend_isentos },
+    { label: 'Tributação Exclusiva', value: user.rend_exclusivos },
+  ];
+  const pagamentos = [
+    { label: 'Total de Juros (anual)', value: user.juros },
+    { label: 'Doações a Partidos Políticos', value: user.doacoes_politicas },
+    { label: 'Pagamentos / Doações / Outros', value: user.pagamentos_doacoes_outros },
+  ];
+
+  const Tile = ({ label, value }: { label: string; value: string }) => (
+    <div className='rounded-xl bg-white border border-primary-ligher p-4 shadow-sm transition-shadow hover:shadow-md'>
+      <p className='text-[11px] font-semibold uppercase tracking-wide text-primary'>
+        {label}
+      </p>
+      <p className='mt-1.5 text-xl font-semibold text-primary-almostBlack tabular-nums'>
+        {brl(value)}
+      </p>
+    </div>
+  );
+
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark'>
-      <button
-        type='submit'
-        className=' px-2 text-white bg-secondary rounded-md hover:bg-secondary-light transition-colors h-6 text-xs shadow-lg mb-6'
-        onClick={() => navigate('/home')}
-      >
-        voltar
-      </button>
-      <div className='max-w-4xl w-full px-6 py-8 bg-primary-moreLighter shadow-md rounded-md h-[70%]'>
-        <h1 className='text-3xl text-center text-primary-almostBlack mb-8'>
-          Detalhes do Usuário
-        </h1>
-        <div className='grid grid-cols-2 gap-4'>
-          <div>
-            <p>
-              <strong>CPF:</strong> {user.cpf}
-            </p>
-            <p>
-              <strong>Nome:</strong> {user.nome}
-            </p>
-            <p>
-              <strong>Exercício:</strong> {user.exercicio}
-            </p>
-            <p>
-              <strong>Rendimentos Tributáveis:</strong> {user.rend_tributaveis}
-            </p>
-            <p>
-              <strong>Rendimentos Isentos:</strong> {user.rend_isentos}
-            </p>
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-primary-dark via-primary-light to-primary-dark p-6'>
+      <div className='max-w-4xl w-full bg-primary-moreLighter shadow-2xl rounded-2xl overflow-hidden'>
+        {/* Header */}
+        <div className='bg-primary-dark px-8 py-6 flex items-center gap-5'>
+          <div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/15 text-2xl font-bold text-white ring-2 ring-white/30'>
+            {initials}
           </div>
-          <div>
-            <p>
-              <strong>Rendimentos Sujeitos à Tributação Exclusiva:</strong>{' '}
-              {user.rend_exclusivos}
-            </p>
-            <p>
-              <strong>Pagamento Anual Total de Juros:</strong> {user.juros}
-            </p>
-            <p>
-              <strong>Doações a Partidos Políticos:</strong>{' '}
-              {user.doacoes_politicas}
-            </p>
-            <p>
-              <strong>Pagamentos/Doações/Outros:</strong>{' '}
-              {user.pagamentos_doacoes_outros}
-            </p>
+          <div className='min-w-0 flex-1'>
+            <h1 className='truncate text-2xl font-bold text-white'>
+              {user.nome}
+            </h1>
+            <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-primary-ligher'>
+              <span className='tabular-nums'>CPF {user.cpf}</span>
+              <span className='inline-flex items-center rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium text-white'>
+                Exercício {user.exercicio}
+              </span>
+            </div>
+          </div>
+          <button
+            type='button'
+            className='shrink-0 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/25'
+            onClick={() => navigate('/home')}
+          >
+            ← Voltar
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className='px-8 py-7'>
+          <h2 className='mb-3 text-sm font-bold uppercase tracking-wider text-primary-darker'>
+            Rendimentos
+          </h2>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+            {rendimentos.map((r) => (
+              <Tile key={r.label} label={r.label} value={r.value} />
+            ))}
+          </div>
+
+          <h2 className='mb-3 mt-7 text-sm font-bold uppercase tracking-wider text-primary-darker'>
+            Pagamentos e Deduções
+          </h2>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+            {pagamentos.map((p) => (
+              <Tile key={p.label} label={p.label} value={p.value} />
+            ))}
           </div>
         </div>
       </div>
